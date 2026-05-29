@@ -2,7 +2,7 @@ import storage
 from utils import calculate_hash, get_timestamp, print_info
 
 MINING_REWARD = 50.0
-DIFFICULTY = 51
+DIFFICULTY = 5
 
 def make_block(index: int,
                transactions: list,
@@ -15,7 +15,7 @@ def make_block(index: int,
         "nonce" : 0,
         "timestamp" : get_timestamp(),
         "blockhash": "",
-        "isclosed": False,
+        "is_closed": False,
         "parent_index": parent_index,
         "transactions": list(transactions),
     }
@@ -35,8 +35,8 @@ def make_genesis_block() -> dict:
         previous_hash="0" * 64,
     )
 
-    block["is_closed"]  = True
-    block["miner"]      = "SYSTEM"
+    block["is_closed"] = True
+    block["miner"] = "SYSTEM"
     block["block_hash"] = compute_block_hash(block)
     return block
 
@@ -66,9 +66,8 @@ def get_last_closed_block(blocks: list) -> dict:
 
 
 def get_open_block(blocks: list) -> dict:
-
     for block in reversed(blocks):
-        if not block["is_closed"]:
+        if not block.get("is_closed", False):
             return block
     return None
 
