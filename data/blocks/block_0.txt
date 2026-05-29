@@ -1,0 +1,21 @@
+{
+  "index": 0,
+  "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "miner": "SYSTEM",
+  "nonce": 0,
+  "timestamp": "2026-05-30 00:31:31",
+  "blockhash": "",
+  "isclosed": false,
+  "parent_index": -1,
+  "transactions": [
+    {
+      "sender": "SYSTEM",
+      "receiver": "SYSTEM",
+      "amount": 0.0,
+      "timestamp": "2026-05-30 00:31:31",
+      "tx_hash": "GENESIS"
+    }
+  ],
+  "is_closed": true,
+  "block_hash": "97177f7cfd369d19cfd0083f178ef7a8aedef7e8695b68c5891a029f28c99c80"
+}
