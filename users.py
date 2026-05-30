@@ -1,5 +1,9 @@
 import storage
 from utils import calculate_hash, print_success, print_error
+import storage
+import blocks as blk_module
+from transactions import make_reward_transaction, TX_LIMIT
+from utils import print_error, print_info, print_success
 
 INITIAL_BALANCE = 100.0
 
@@ -46,7 +50,7 @@ def register_user(users: dict, login:str, password:str, role:str = "user") -> bo
     return True
 
 def show_users(users: dict, requester_login: str, requester_password: str) -> bool:
-    requester = users.get(requester_login)
+    requester = users[requester_login]
 
     if requester is None or not check_password(requester, requester_password):
         print_error("Неверный логин или пароль.")
@@ -104,11 +108,6 @@ def authenticate(users: dict, login: str, password: str) -> bool:
         return False
     return check_password(user, password)
 
-import storage
-import blocks as blk_module
-from transactions import make_reward_transaction, TX_LIMIT
-from utils import print_error, print_info, print_success
-
 
 def mine_block(block: dict) -> str:
     target = "0" * blk_module.DIFFICULTY
@@ -144,7 +143,7 @@ def do_mining(
     password: str,
 ) -> bool:
 
-    from users import authenticate, check_password
+
 
     if miner_login not in users:
         print_error(f"Пользователь '{miner_login}' не найден.")
@@ -161,7 +160,7 @@ def do_mining(
             return False
         print_info("Нет открытых блоков. Упаковываем ожидающие транзакции...")
         open_block = blk_module.pack_pending_into_block(blocks, pending)
-        # Очищаем пул после упаковки
+
         del pending[:TX_LIMIT]
         storage.save_pending(pending)
 

@@ -2,7 +2,7 @@ import storage
 import blocks as blk_module
 from transactions import make_reward_transaction, TX_LIMIT
 from utils import print_error, print_info, print_success
-
+from users import authenticate, check_password
 
 def mine_block(block: dict) -> str:
     target = "0" * blk_module.DIFFICULTY
@@ -30,16 +30,7 @@ def mine_block(block: dict) -> str:
         nonce += 1
 
 
-def do_mining(
-    users: dict,
-    blocks: list,
-    pending: list,
-    miner_login: str,
-    password: str,
-) -> bool:
-
-    from users import authenticate, check_password
-
+def do_mining(users: dict,blocks: list,pending: list,miner_login: str,password: str,) -> bool:
     if miner_login not in users:
         print_error(f"Пользователь '{miner_login}' не найден.")
         return False
@@ -55,7 +46,7 @@ def do_mining(
             return False
         print_info("Нет открытых блоков. Упаковываем ожидающие транзакции...")
         open_block = blk_module.pack_pending_into_block(blocks, pending)
-        # Очищаем пул после упаковки
+
         del pending[:TX_LIMIT]
         storage.save_pending(pending)
 

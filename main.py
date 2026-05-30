@@ -15,11 +15,11 @@ def init_state() -> tuple:
     pending = storage.load_pending()
 
     if not blocks:
-        print_info("Создаём первый-блок...")
+        print_info("Создаём первый блок")
         genesis = blk_module.make_genesis_block()
         blocks.append(genesis)
         storage.save_block(genesis)
-        print_success("Первый-блок создан.")
+        print_success("Первый блок создан.")
 
     return users, blocks, pending
 
@@ -91,7 +91,6 @@ def menu_show_blockchain(blocks: list, pending: list) -> None:
 
 
 def menu_check_balance(users: dict) -> None:
-
     print_header("ПРОВЕРКА БАЛАНСА")
     login    = input("  Логин  : ").strip()
     password = input("  Пароль : ").strip()
@@ -138,19 +137,18 @@ def menu_mining(users: dict, blocks: list, pending: list) -> None:
 def show_menu() -> None:
     print(f"""
 {'=' * 60}
-  1  —  Регистрация пользователя
-  2  —  Совершить транзакцию
-  3  —  Удалить пользователя
-  4  —  Показать блокчейн
-  5  —  Проверить баланс
-  6  —  Посмотреть пользователей
-  7  —  Майнинг блока
-  0  —  Выход
+  1  -  Регистрация пользователя
+  2  -  Совершить транзакцию
+  3  -  Удалить пользователя
+  4  -  Показать блокчейн
+  5  -  Проверить баланс
+  6  -  Посмотреть пользователей
+  7  -  Майнинг блока
+  0  -  Выход
 {'=' * 60}""")
 
 
 def main() -> None:
-
     print_header("Инициализация блокчейна")
     users, blocks, pending = init_state()
     print_success(
@@ -158,7 +156,6 @@ def main() -> None:
         f"блоков={len(blocks)}, "
         f"транзакций в пуле={len(pending)}"
     )
-
 
     handlers = {
         "1": lambda: menu_register(users),

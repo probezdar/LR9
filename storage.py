@@ -1,11 +1,13 @@
 import json
 import os
 
+import blocks
+
 DATA_DIR = "data"
 BLOCKS_DIR = os.path.join(DATA_DIR, "blocks")
 USERS_FILE = os.path.join(DATA_DIR, "users")
 PENDING_FILE = os.path.join(DATA_DIR, "pending_transactions.txt")
-INDEX_FILE = os.path.join(DATA_DIR, "chain_index.txt")
+
 
 def ensure_dirs() -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -41,12 +43,20 @@ def load_pending() -> list:
 def save_block(block: dict) -> None:
     filepath = os.path.join(BLOCKS_DIR, f"block_{block['index']}.txt")
     write_file(filepath, block)
-    indexes = read_file(INDEX_FILE, [])
 
-    if block['index'] not in indexes:
-        indexes.append(block["index"])
-        indexes.sort()
-        write_file(INDEX_FILE, indexes)
+def get_last_block() -> int:
+    indexes = get_all_block_indexes()
+    return indexes[-1]
+
+def get_all_block_indexes() -> list[int]:
+    indexes = []
+    for fname in os.listdir(BLOCKS_DIR):
+        if fname.startswith("block_") and fname.endswith(".txt"):
+            number_str = fname[6:-4]
+            if number_str.isdigit():
+                indexes.append(int(number_str))
+    indexes.sort()
+    return indexes
 
 def load_block(index: int) -> dict | None:
     filepath = os.path.join(BLOCKS_DIR, f"block_{index}.txt")
@@ -62,10 +72,10 @@ def load_block(index: int) -> dict | None:
     return data
 
 def load_all_blocks() -> list:
-    indexes = read_file(INDEX_FILE, [])
-    blocks = []
+    indexes = get_all_block_indexes()
+    all_blocks = []
     for index in sorted(indexes):
         b = load_block(index)
         if b is not None:
-            blocks.append(b)
-    return blocks
+            all_blocks.append(b)
+    return all_blocks

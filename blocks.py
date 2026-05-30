@@ -1,8 +1,8 @@
 import storage
 from utils import calculate_hash, get_timestamp, print_info
-
+from transactions import TX_LIMIT, format_tx
 MINING_REWARD = 50.0
-DIFFICULTY = 5
+DIFFICULTY = 4
 
 def make_block(index: int,
                transactions: list,
@@ -91,12 +91,10 @@ def pack_pending_into_block(blocks: list, pending: list) -> dict:
             f"Создаём ответвление (форк)."
         )
     else:
-        # Стандартный путь: продолжаем главную цепь
         last = get_last_closed_block(blocks)
         previous_hash = last["block_hash"]
         parent_index  = -1
 
-    # Берём транзакции до лимита
     txs = pending[:TX_LIMIT]
 
     new_block = make_block(
@@ -108,7 +106,6 @@ def pack_pending_into_block(blocks: list, pending: list) -> dict:
 
     blocks.append(new_block)
 
-    # Автосохранение нового блока
     storage.save_block(new_block)
 
     print_info(f"Блок #{new_block['index']} создан и ожидает майнинга.")
@@ -116,7 +113,7 @@ def pack_pending_into_block(blocks: list, pending: list) -> dict:
 
 
 def show_blockchain(blocks: list, pending: list) -> None:
-    from transactions import TX_LIMIT, format_tx
+
 
     print(f"\n{'=' * 60}")
     print(f"  БЛОКЧЕЙН  |  Блоков: {len(blocks)}  |  Лимит: {TX_LIMIT} тх/блок")

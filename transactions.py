@@ -3,7 +3,7 @@ import sender
 import storage
 from utils import calculate_hash, get_timestamp, print_success, print_error, print_info
 
-TX_LIMIT = 5
+TX_LIMIT = 2
 
 def make_transaction(sender: str, receiver: str, amount: float) -> dict:
     ts = get_timestamp()
@@ -19,13 +19,7 @@ def make_transaction(sender: str, receiver: str, amount: float) -> dict:
 def make_reward_transaction(miner_login, reward: float) -> dict:
     return make_transaction("SYSTEM", miner_login, reward )
 
-def add_transaction(
-        users: dict,
-        pending: list,
-        sender_login: str,
-        receiver_login: str,
-        amount: float,
-) -> bool:
+def add_transaction(users: dict, pending: list, sender_login: str, receiver_login: str,amount: float,) -> bool:
     if sender_login not in users:
         print_error(f"Отправитель '{sender_login}' не найден.")
         return False
