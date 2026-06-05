@@ -1,8 +1,7 @@
-import storage
 import blocks as blk_module
 from transactions import make_reward_transaction, TX_LIMIT
 from utils import print_error, print_info, print_success
-from users import authenticate, check_password
+from users import check_password
 
 def mine_block(block: dict) -> str:
     target = "0" * blk_module.DIFFICULTY
@@ -46,23 +45,14 @@ def do_mining(users: dict,blocks: list,pending: list,miner_login: str,password: 
             return False
         print_info("Нет открытых блоков. Упаковываем ожидающие транзакции...")
         open_block = blk_module.pack_pending_into_block(blocks, pending)
-
         del pending[:TX_LIMIT]
-        storage.save_pending(pending)
 
     open_block["miner"] = miner_login
 
-    mine_block(open_block)
-
     reward_tx = make_reward_transaction(miner_login, blk_module.MINING_REWARD)
     open_block["transactions"].append(reward_tx)
-
-
+    mine_block(open_block)
     users[miner_login]["balance"] += blk_module.MINING_REWARD
-
-
-    storage.save_block(open_block)
-    storage.save_users(users)
 
     print_success(
         f"Награда {blk_module.MINING_REWARD:.2f} монет "

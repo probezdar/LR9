@@ -8,35 +8,31 @@ from utils import print_header, print_success, print_error, print_info
 
 def init_state() -> tuple:
 
-    storage.ensure_dirs()
+    ensure_result = storage.ensure_dirs()
 
-    users   = storage.load_users()
-    blocks  = storage.load_all_blocks()
-    pending = storage.load_pending()
+    users,blocks,pending   = storage.load_state()
 
     if not blocks:
         print_info("Создаём первый блок")
         genesis = blk_module.make_genesis_block()
         blocks.append(genesis)
-        storage.save_block(genesis)
+        storage.save_state(users,pending,blocks)
         print_success("Первый блок создан.")
 
     return users, blocks, pending
 
-
-
-def menu_register(users: dict) -> None:
-
+def menu_register(users: dict, blocks: list, pending: list) -> None:
     print_header("РЕГИСТРАЦИЯ")
     login    = input("  Логин        : ").strip()
     password = input("  Пароль       : ").strip()
     role_raw = input("  Роль (user/admin) [Enter = user]: ").strip().lower()
     role     = "admin" if role_raw == "admin" else "user"
-    usr_module.register_user(users, login, password, role)
+
+    if usr_module.register_user(users, login, password, role):
+        storage.save_state(users,pending, blocks)
 
 
 def menu_transaction(users: dict, pending: list, blocks: list) -> None:
-
     print_header("ТРАНЗАКЦИЯ")
 
     if len(users) < 2:
@@ -60,19 +56,19 @@ def menu_transaction(users: dict, pending: list, blocks: list) -> None:
 
     success = add_transaction(users, pending, sender, receiver, amount)
 
-    if success and len(pending) >= TX_LIMIT:
-        print_info(
-            f"Лимит {TX_LIMIT} транзакций достигнут! "
-            "Автоматически создаётся блок..."
-        )
-        blk_module.pack_pending_into_block(blocks, pending)
+    if success:
+        storage.save_state(users, pending, blocks)
+        if len(pending) >= TX_LIMIT:
+            print_info(
+                f"Лимит {TX_LIMIT} транзакций достигнут! "
+                "Автоматически создаётся блок..."
+            )
+            blk_module.pack_pending_into_block(blocks, pending)
+            del pending[:TX_LIMIT]
+        storage.save_state(users, pending, blocks)
 
-        del pending[:TX_LIMIT]
-        storage.save_pending(pending)
 
-
-def menu_delete_user(users: dict) -> None:
-
+def menu_delete_user(users: dict, blocks: list, pending: list) -> None:
     print_header("УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЯ")
     print_info("Администратор может удалить любого.")
     print_info("Пользователь может удалить только себя.")
@@ -81,11 +77,11 @@ def menu_delete_user(users: dict) -> None:
     password  = input("  Ваш пароль           : ").strip()
     target    = input("  Логин для удаления   : ").strip()
 
-    usr_module.delete_user(users, target, requester, password)
+    if usr_module.delete_user(users, target, requester, password):
+        storage.save_state(users,pending,blocks)
 
 
 def menu_show_blockchain(blocks: list, pending: list) -> None:
-
     print_header("БЛОКЧЕЙН")
     blk_module.show_blockchain(blocks, pending)
 
@@ -132,7 +128,8 @@ def menu_mining(users: dict, blocks: list, pending: list) -> None:
         print_info("Майнинг отменён.")
         return
 
-    mng_module.do_mining(users, blocks, pending, login, password)
+    if mng_module.do_mining(users, blocks, pending, login, password):
+        storage.save_state(users,pending,blocks)
 
 def show_menu() -> None:
     print(f"""
@@ -158,9 +155,9 @@ def main() -> None:
     )
 
     handlers = {
-        "1": lambda: menu_register(users),
+        "1": lambda: menu_register(users, blocks,pending),
         "2": lambda: menu_transaction(users, pending, blocks),
-        "3": lambda: menu_delete_user(users),
+        "3": lambda: menu_delete_user(users,blocks,pending),
         "4": lambda: menu_show_blockchain(blocks, pending),
         "5": lambda: menu_check_balance(users),
         "6": lambda: menu_show_users(users),

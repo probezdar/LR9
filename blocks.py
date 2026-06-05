@@ -1,27 +1,22 @@
-import storage
 from utils import calculate_hash, get_timestamp, print_info
 from transactions import TX_LIMIT, format_tx
 MINING_REWARD = 50.0
 DIFFICULTY = 4
 
-def make_block(index: int,
-               transactions: list,
-               previous_hash: str,
-               parent_index: int = -1) -> dict:
+def make_block(index: int,transactions: list,previous_hash: str,parent_index: int = -1) -> dict:
     return {
         "index": index,
         "previous_hash": previous_hash,
         "miner" : "",
         "nonce" : 0,
         "timestamp" : get_timestamp(),
-        "blockhash": "",
+        "block_hash": "",
         "is_closed": False,
         "parent_index": parent_index,
         "transactions": list(transactions),
     }
 
 def make_genesis_block() -> dict:
-
     genesis_tx = {
         "sender":    "SYSTEM",
         "receiver":  "SYSTEM",
@@ -58,9 +53,8 @@ def compute_block_hash(block: dict) -> str:
 
 
 def get_last_closed_block(blocks: list) -> dict:
-
     for block in reversed(blocks):
-        if block["is_closed"]:
+        if block.get("is_closed", False):
             return block
     return blocks[0]
 
@@ -79,12 +73,12 @@ def get_next_index(blocks: list) -> int:
 
 
 def pack_pending_into_block(blocks: list, pending: list) -> dict:
-    from transactions import TX_LIMIT
-
     open_block = get_open_block(blocks)
 
     if open_block:
-        previous_hash = open_block["block_hash"] or "0" * 64
+        previous_hash = (
+                open_block.get("block_hash") or "0" * 64
+        )
         parent_index  = open_block["index"]
         print_info(
             f"Обнаружен незакрытый блок #{open_block['index']}. "
@@ -96,7 +90,6 @@ def pack_pending_into_block(blocks: list, pending: list) -> dict:
         parent_index  = -1
 
     txs = pending[:TX_LIMIT]
-
     new_block = make_block(
         index=get_next_index(blocks),
         transactions=txs,
@@ -106,39 +99,39 @@ def pack_pending_into_block(blocks: list, pending: list) -> dict:
 
     blocks.append(new_block)
 
-    storage.save_block(new_block)
-
     print_info(f"Блок #{new_block['index']} создан и ожидает майнинга.")
     return new_block
 
 
 def show_blockchain(blocks: list, pending: list) -> None:
-
-
     print(f"\n{'=' * 60}")
     print(f"  БЛОКЧЕЙН  |  Блоков: {len(blocks)}  |  Лимит: {TX_LIMIT} тх/блок")
     print(f"{'=' * 60}")
 
     for block in blocks:
-        status     = "ЗАКРЫТ" if block["is_closed"] else "ОТКРЫТ"
-        parent_str = (
-            f"  Родитель : блок #{block['parent_index']}\n"
-            if block["parent_index"] >= 0
+        is_closed    = block.get("is_closed", False)
+        status       = "ЗАКРЫТ" if is_closed else "ОТКРЫТ"
+        parent_index = block.get("parent_index", -1)
+        block_hash   = block.get("block_hash") or ""
+        parent_str   = (
+            f"  Родитель : блок #{parent_index}\n"
+            if parent_index >= 0
             else ""
         )
-        hash_preview = block["block_hash"][:20] if block["block_hash"] else "(нет)"
-        prev_preview = block["previous_hash"][:20]
+        hash_preview = block_hash[:20] if block_hash else "(нет)"
+        prev_preview = block.get("previous_hash", "")[:20]
 
-        print(f"\n  Блок #{block['index']}  [{status}]")
-        print(f"  Время    : {block['timestamp']}")
+        print(f"\n  Блок #{block.get('index')}  [{status}]")
+        print(f"  Время    : {block.get('timestamp', '—')}")
         print(f"{parent_str}", end="")
         print(f"  Prev     : {prev_preview}...")
-        print(f"  Hash     : {hash_preview}{'...' if block['block_hash'] else ''}")
-        print(f"  Nonce    : {block['nonce']}")
-        print(f"  Майнер   : {block['miner'] or '—'}")
+        print(f"  Hash     : {hash_preview}{'...' if block_hash else ''}")
+        print(f"  Nonce    : {block.get('nonce', 0)}")
+        print(f"  Майнер   : {block.get('miner') or '—'}")
         print(f"  Транзакции:")
-        if block["transactions"]:
-            for tx in block["transactions"]:
+        txs = block.get("transactions", [])
+        if txs:
+            for tx in txs:
                 print(format_tx(tx))
         else:
             print("    (нет транзакций)")
@@ -150,4 +143,3 @@ def show_blockchain(blocks: list, pending: list) -> None:
             print(format_tx(tx))
     else:
         print("\n  Пул ожидающих транзакций: пуст")
-

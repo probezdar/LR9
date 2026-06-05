@@ -1,6 +1,3 @@
-import sender
-
-import storage
 from utils import calculate_hash, get_timestamp, print_success, print_error, print_info
 
 TX_LIMIT = 2
@@ -30,6 +27,11 @@ def add_transaction(users: dict, pending: list, sender_login: str, receiver_logi
         print_error("Нельзя переводить деньги самому себе")
         return False
     if amount <= 0:
+        print_error(f"Недостаточно средств. ")
+        return False
+
+    sender = users[sender_login]
+    if sender["balance"] < amount:
         print_error(
             f"Недостаточно средств. "
             f"Баланс: {sender['balance']:.2f}, нужно: {amount:.2f}"
@@ -41,9 +43,6 @@ def add_transaction(users: dict, pending: list, sender_login: str, receiver_logi
 
     tx = make_transaction(sender_login, receiver_login, amount)
     pending.append(tx)
-
-    storage.save_users(users)
-    storage.save_pending(pending)
 
     print_success(
         f"Транзакция {sender_login} -> {receiver_login},"
