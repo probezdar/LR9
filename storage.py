@@ -3,7 +3,7 @@ import os
 from utils import calculate_hash
 
 DATA_DIR = "data"
-DATA_FILE = os.path.join(DATA_DIR, "blocks")
+DATA_FILE = os.path.join(DATA_DIR, "blocks.txt")
 
 def ensure_dirs() -> None:
     os.makedirs(DATA_DIR, exist_ok=True)

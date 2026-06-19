@@ -10,7 +10,7 @@ def init_state() -> tuple:
 
     ensure_result = storage.ensure_dirs()
 
-    users,blocks,pending   = storage.load_state()
+    users,pending,blocks   = storage.load_state()
 
     if not blocks:
         print_info("Создаём первый блок")
